@@ -12,7 +12,7 @@ use ReflectionClass;
 final class PresenterFactory implements IPresenterFactory
 {
     /**
-     * @var string[][] of module => splited mask
+     * @var string[][] of module => spited mask
      */
     private $mapping = [
         '*' => ['', '*Module\\', '*Presenter'],
@@ -34,10 +34,14 @@ final class PresenterFactory implements IPresenterFactory
         $this->container = $container;
     }
 
-    /**
-     * @param string $name
-     * @return IPresenter|callable|object
-     */
+
+	/**
+	 * @param string $name
+	 *
+	 * @return IPresenter|callable|object
+	 * @throws Nette\InvalidArgumentException
+	 * @throws InvalidPresenterException
+	 */
     public function createPresenter($name)
     {
         $presenterClass = $this->getPresenterClass($name);
@@ -50,10 +54,15 @@ final class PresenterFactory implements IPresenterFactory
         return $presenter;
     }
 
-    /**
-     * Generates and checks presenter class name.
-     * @param string $name presenter name
-     */
+
+	/**
+	 * Generates and checks presenter class name.
+	 *
+	 * @param string $name presenter name
+	 *
+	 * @return string
+	 * @throws InvalidPresenterException
+	 */
     public function getPresenterClass(&$name): string
     {
         if (isset($this->cache[$name])) {
@@ -87,9 +96,12 @@ final class PresenterFactory implements IPresenterFactory
         return $class;
     }
 
-    /**
-     * @param string[][]
-     */
+
+	/**
+	 * @param array $mapping
+	 *
+	 * @throws \Nette\InvalidStateException
+	 */
     public function setMapping(array $mapping): void
     {
         foreach ($mapping as $module => $mask) {
@@ -106,9 +118,14 @@ final class PresenterFactory implements IPresenterFactory
         }
     }
 
-    /**
-     * Formats presenter class name from its name.
-     */
+
+	/**
+	 * Formats presenter class name from its name.
+	 *
+	 * @param string $presenter
+	 *
+	 * @return string
+	 */
     public function formatPresenterClass(string $presenter): string
     {
         $parts = explode(':', $presenter);
