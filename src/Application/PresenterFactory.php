@@ -60,16 +60,22 @@ final class PresenterFactory implements IPresenterFactory
             return $this->cache[$name];
         }
 
-        if (! is_string($name) || ! Nette\Utils\Strings::match($name, '#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*\z#')) {
+        if (!class_exists($name) && (!is_string($name) || !Nette\Utils\Strings::match($name, '#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*\z#'))) {
             throw new InvalidPresenterException("Presenter name must be alphanumeric string, '$name' is invalid.");
         }
 
         $class = $this->formatPresenterClass($name);
-        if (! class_exists($class)) {
+
+        if (!class_exists($class) && class_exists($name)) {
+            $class = $name;
+            $name = $this->unformatPresenterClass($name);
+        }
+
+        if (!class_exists($class)) {
             throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' was not found.");
         }
 
-        $reflection = new ReflectionClass($class);
+        $reflection = new \ReflectionClass($class);
         $class = $reflection->getName();
 
         if ($reflection->isAbstract()) {
@@ -114,5 +120,25 @@ final class PresenterFactory implements IPresenterFactory
             $mapping[0] .= str_replace('*', $part, $mapping[$parts ? 1 : 2]);
         }
         return $mapping[0];
+    }
+
+
+    /**
+     * Formats presenter name from class name.
+     *
+     * @param $class
+     *
+     * @return null|string
+     */
+    public function unformatPresenterClass($class)
+    {
+        foreach ($this->mapping as $module => $mapping) {
+            $mapping = str_replace(['\\', '*'], ['\\\\', '(\w+)'], $mapping);
+            if (preg_match("#^\\\\?$mapping[0]((?:$mapping[1])*)$mapping[2]\\z#i", $class, $matches)) {
+                return ($module === '*' ? '' : $module . ':')
+                    . preg_replace("#$mapping[1]#iA", '$1:', $matches[1]) . $matches[3];
+            }
+        }
+        return NULL;
     }
 }
