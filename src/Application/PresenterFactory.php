@@ -12,7 +12,7 @@ use ReflectionClass;
 final class PresenterFactory implements IPresenterFactory
 {
     /**
-     * @var string[][] of module => spited mask
+     * @var string[][] of module => splited mask
      */
     private $mapping = [
         '*' => ['', '*Module\\', '*Presenter'],
